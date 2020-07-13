@@ -35,6 +35,21 @@ class Qt < Formula
     directory "qt3d"
   end
 
+  # Disable PCRE2 JIT on ARM
+  # Cherry-picked from https://codereview.qt-project.org/c/qt/qtbase/+/307507
+  patch do
+    url "https://gist.github.com/PhysSong/eeca8646c38ae4f3b3e4c83a02800de5/raw/57f0af45ced16aafe6ae94d9fb6c07a1c6f169f0/pcre2.diff"
+    sha256 "9fbefcfc49aa504f92c33497df7b07c733e4998369a36d0e8efeafaa8dffd8fe"
+    directory "qtbase"
+  end
+
+  # Temporarily create arm64 mkspec
+  patch do
+    url "https://gist.githubusercontent.com/PhysSong/eeca8646c38ae4f3b3e4c83a02800de5/raw/c24eb10c9158d7f4608db87e0e5613c3f0efe84b/mkspec-arm64.diff"
+    sha256 "f2a173e19cfe4f1c95eef72f578d6797ff23961a40fdcb28d28c547e48ffc409"
+    directory "qtbase"
+  end
+
   def install
     args = %W[
       -verbose
@@ -51,8 +66,12 @@ class Qt < Formula
       -no-rpath
       -pkg-config
       -dbus-runtime
-      -proprietary-codecs
     ]
+
+    # Exclude qtwebengine until upstream fixes it
+    # See https://bugreports.qt.io/browse/QTBUG-85537
+    args += %W[-skip qtwebengine -platform macx-arm-clang] if Hardware::CPU.arm?
+    args += %W[-proprietary-codecs] unless Hardware::CPU.arm?
 
     system "./configure", *args
 
