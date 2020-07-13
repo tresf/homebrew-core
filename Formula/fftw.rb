@@ -5,18 +5,6 @@ class Fftw < Formula
   sha256 "6113262f6e92c5bd474f2875fa1b01054c4ad5040f6b0da7c03c98821d9ae303"
   revision 2
 
-  bottle do
-    cellar :any
-    sha256 "e021f210b7f8a785b86b82fe191408d783def6e6baec192e8133d703c51bf0de" => :catalina
-    sha256 "d4af1ee10e2eb5784874cac832f10d3e8d3010962e31102df7c6bffc34783d92" => :mojave
-    sha256 "64d050b8736eed9b127f175d39d4acc93c1ec960b096aee756bbb5ea906b6b82" => :high_sierra
-  end
-
-  depends_on "gcc"
-  depends_on "open-mpi"
-
-  fails_with :clang
-
   def install
     args = [
       "--enable-shared",
@@ -24,17 +12,19 @@ class Fftw < Formula
       "--prefix=#{prefix}",
       "--enable-threads",
       "--disable-dependency-tracking",
-      "--enable-mpi",
-      "--enable-openmp",
+      "--disable-mpi",
+      "--disable-openmp",
+      "--disable-fortran"
     ]
 
     # FFTW supports runtime detection of CPU capabilities, so it is safe to
-    # use with --enable-avx and the code will still run on all CPUs
-    simd_args = ["--enable-sse2", "--enable-avx"]
+    # use with --enable-avx2 and the code will still run on all CPUs
+    simd_args_single = Hardware::CPU.arm? ? ["--enable-neon"] : ["--enable-sse2", "--enable-avx"]
+    simd_args_double = Hardware::CPU.arm? ? [] : ["--enable-sse2", "--enable-avx"]
 
     # single precision
     # enable-sse2, enable-avx and enable-avx2 work for both single and double precision
-    system "./configure", "--enable-single", *(args + simd_args)
+    system "./configure", "--enable-single", *(args + simd_args_single)
     system "make", "install"
 
     # clean up so we can compile the double precision variant
@@ -42,7 +32,7 @@ class Fftw < Formula
 
     # double precision
     # enable-sse2, enable-avx and enable-avx2 work for both single and double precision
-    system "./configure", *(args + simd_args)
+    system "./configure", *(args + simd_args_double)
     system "make", "install"
 
     # clean up so we can compile the long-double precision variant
