@@ -2,6 +2,7 @@ class Openjdk < Formula
   desc "Development kit for the Java programming language"
   homepage "https://openjdk.java.net/"
   url "https://github.com/apple/openjdk/archive/Xcode-12.0b1.tar.gz"
+  sha256 "f75fc4da4cd9450ff643d9ca24cccbccf62c6b8a53c32a3fc75915bdf99aa142"
 
   bottle do
     cellar :any
