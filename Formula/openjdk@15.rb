@@ -13,7 +13,7 @@ class OpenjdkAT15 < Formula
     sha256 "bef2e4a43a6485253c655979cfc719332fb8631792720c0b9f6591559fb513f1" => :high_sierra
   end
 
-  keg_only "it shadows the macOS `java` wrapper"
+  keg_only :versioned_formula
 
   depends_on "autoconf" => :build
 
