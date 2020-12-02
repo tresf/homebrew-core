@@ -22,15 +22,16 @@ class Openjdk < Formula
 
   # From https://jdk.java.net/
   # http://openjdk.java.net/groups/build/doc/building.html#boot-jdk-requirements
+  # TODO: Determine if N-1 is advised in a future release
+  #   e.g. "configure: (Your Build JDK must be version 16)"
   resource "boot-jdk" do
     on_macos do
-      # TODO: Determine if N-1 is advised after arm backport
       url "https://download.java.net/java/early_access/jdk16/26/GPL/openjdk-16-ea+26_osx-x64_bin.tar.gz"
       sha256 "85a6bb4f73c1b7ab64cb044b368581d0c72eefed2142a06b143f62f0e4325353"
     end
     on_linux do
-      url "https://download.java.net/java/GA/jdk15/779bf45e88a44cbd9ea6621d33e33db1/36/GPL/openjdk-15_linux-x64_bin.tar.gz"
-      sha256 "bb67cadee687d7b486583d03c9850342afea4593be4f436044d785fba9508fb7"
+      url "https://download.java.net/java/early_access/jdk16/26/GPL/openjdk-16-ea+26_linux-x64_bin.tar.gz"
+      sha256 "e74300f3f770122358d768d45e181d29c710e8d41bbc4ab8e492929f2867347c"
     end
   end
 
@@ -43,7 +44,11 @@ class Openjdk < Formula
   def install
     boot_jdk_dir = Pathname.pwd/"boot-jdk"
     resource("boot-jdk").stage boot_jdk_dir
-    boot_jdk = boot_jdk_dir/"Contents/Home"
+    boot_jdk = boot_jdk_dir
+
+    on_macos do
+      boot_jdk << "/Contents/Home"
+    end
 
     java_options = ENV.delete("_JAVA_OPTIONS")
 
@@ -65,17 +70,20 @@ class Openjdk < Formula
       --without-version-opt
       --with-version-build=#{build}
       --with-toolchain-path=/usr/bin
-      --with-sysroot=#{MacOS.sdk_path}
-      --with-extra-ldflags=-headerpad_max_install_names
       --with-boot-jdk=#{boot_jdk}
       --with-boot-jdk-jvmargs=#{java_options}
       --with-build-jdk=#{boot_jdk}
       --with-debug-level=release
       --with-native-debug-symbols=none
-      --enable-dtrace
       --with-jvm-variants=server
     ]
     on_macos do
+      configure_args += %W[
+        --with-sysroot=#{MacOS.sdk_path}
+        --with-extra-ldflags=-headerpad_max_install_names
+        --enable-dtrace
+      ]
+
       if Hardware::CPU.arm?
         configure_args += %W[
           --disable-warnings-as-errors
