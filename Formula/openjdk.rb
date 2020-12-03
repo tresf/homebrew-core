@@ -44,10 +44,14 @@ class Openjdk < Formula
   def install
     boot_jdk_dir = Pathname.pwd/"boot-jdk"
     resource("boot-jdk").stage boot_jdk_dir
-    boot_jdk = boot_jdk_dir
+    boot_jdk = ""
 
     on_macos do
-      boot_jdk << "/Contents/Home"
+      boot_jdk = boot_jdk_dir"/Contents/Home"
+    end
+
+    on_linux do
+      boot_jdk = boot_jdk_dir
     end
 
     java_options = ENV.delete("_JAVA_OPTIONS")
@@ -101,11 +105,25 @@ class Openjdk < Formula
     ENV["MAKEFLAGS"] = "JOBS=#{ENV.make_jobs}"
     system "make", "images"
 
-    jdk = Dir["build/*/images/jdk-bundle/*"].first
-    libexec.install jdk => "openjdk.jdk"
-    bin.install_symlink Dir["#{libexec}/openjdk.jdk/Contents/Home/bin/*"]
-    include.install_symlink Dir["#{libexec}/openjdk.jdk/Contents/Home/include/*.h"]
-    include.install_symlink Dir["#{libexec}/openjdk.jdk/Contents/Home/include/darwin/*.h"]
+    on_macos do
+      jdk = Dir["build/*/images/jdk-bundle/*"].first
+      libexec.install jdk => "openjdk.jdk"
+      bin.install_symlink Dir["#{libexec}/openjdk.jdk/Contents/Home/bin/*"]
+      include.install_symlink Dir["#{libexec}/openjdk.jdk/Contents/Home/include/*.h"]
+      include.install_symlink Dir["#{libexec}/openjdk.jdk/Contents/Home/include/darwin/*.h"]
+    end
+
+    on_linux do
+      jdk = Dir["build/*/jdk"].first
+      libexec.install jdk => "openjdk.jdk"
+      mkdir_p libexec/"support"
+      modules = Dir["build/*/support/modules_libs"].first
+      libexec.install modules => "support/modules_libs"
+      bin.install_symlink Dir["#{libexec}/openjdk.jdk/bin/*"]
+      lib.install_symlink Dir["#{libexec}/openjdk.jdk/lib/*"]
+      include.install_symlink Dir["#{libexec}/openjdk.jdk/include/*.h"]
+      include.install_symlink Dir["#{libexec}/openjdk.jdk/include/linux/*.h"]
+    end
   end
 
   def post_install
