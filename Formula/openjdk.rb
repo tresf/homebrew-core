@@ -44,7 +44,7 @@ class Openjdk < Formula
   def install
     boot_jdk_dir = Pathname.pwd/"boot-jdk"
     resource("boot-jdk").stage boot_jdk_dir
-    boot_jdk = "#{boot_jdk_dir}"
+    boot_jdk = boot_jdk_dir.to_s
 
     on_macos do
       boot_jdk += "/Contents/Home"
