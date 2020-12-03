@@ -44,14 +44,10 @@ class Openjdk < Formula
   def install
     boot_jdk_dir = Pathname.pwd/"boot-jdk"
     resource("boot-jdk").stage boot_jdk_dir
-    boot_jdk = ""
+    boot_jdk = "#{boot_jdk_dir}"
 
     on_macos do
-      boot_jdk = boot_jdk_dir"/Contents/Home"
-    end
-
-    on_linux do
-      boot_jdk = boot_jdk_dir
+      boot_jdk += "/Contents/Home"
     end
 
     java_options = ENV.delete("_JAVA_OPTIONS")
