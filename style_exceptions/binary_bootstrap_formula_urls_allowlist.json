@@ -16,6 +16,7 @@
   "mlton",
   "openjdk",
   "openjdk@11",
+  "openjdk@15",
   "openjdk@8",
   "pypy",
   "sbcl",
